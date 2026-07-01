@@ -17,4 +17,3 @@ Normal Operations|Useless Version
 
 - The interpreter read everything bottom up, right to left.
 - 2 white spaces must be used at all times.
--
