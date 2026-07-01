@@ -24,4 +24,5 @@ The code below calculate `1 + 4 * 2 - 3`
 ```
 <?EMPTYTRASHCAN>
 [,aaaaaaaaaa][..,bbbbbbbbbb][.,cccccccccc][,,dddddddddd][bbbbbbbbbb  bbbbbbbbbb  |eeeeeeeeee][eeeeeeeeee  aaaaaaaaaa  |ffffffffff][ffffffffff  dddddddddd  /gggggggggg]"gggggggggg
-<!194thTRASHCAN>```
+<!194thTRASHCAN>
+```

@@ -19,7 +19,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let contents = fs::read_to_string(filename)?;
-    let mut chars = contents.chars();
 
     //change this to actual interpreter later
     println!("Running:\n{}", contents);
