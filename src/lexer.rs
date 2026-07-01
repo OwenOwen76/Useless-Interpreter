@@ -69,6 +69,33 @@ impl<'a> Lexer<'a> {
         s
     }
 
+    fn read_trashcan(&mut self) -> Option<Tokens> {
+        let mut s = String::new();
+
+        while let Some(c) = self.chars.next() {
+            s.push(c);
+
+            if c == '>' {
+                break;
+            }
+        }
+
+        if s == "<?EMPTYTRASHCAN>" {
+            return Some(Tokens::StartFile);
+        }
+
+        if s.starts_with("<!") && s.ends_with("TRASHCAN>") {
+            let num = s
+                .trim_start_matches("<!")
+                .trim_end_matches("TRASHCAN>")
+                .trim_end_matches(|c: char| c.is_alphabetic());
+
+            return Some(Tokens::EndFile(num.to_string()));
+        }
+
+        Some(Tokens::Error)
+    }
+
     pub fn next_token(&mut self) -> Option<Tokens> {
         self.skip_whitespace();
 
@@ -76,6 +103,10 @@ impl<'a> Lexer<'a> {
             Some(c) => *c,
             None => return None,
         };
+
+        if let Some('<') = self.chars.peek().copied() {
+            return self.read_trashcan();
+        }
 
         if c.is_alphabetic() {
             let ident = self.read_ident();
