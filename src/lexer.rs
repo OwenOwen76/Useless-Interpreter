@@ -1,9 +1,22 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum Tokens {
     Ident(String),
-    NumberDigits(String),
+    Number(String),
+
+    LeftBracket,
+    RightBracket,
+    Quote,
+
+    Add,
+    Subtract,
+    Equal,
+    NotEqual,
+
+    StartFile,
+    EndFile(String),
+
+    EOF,
     Error,
-    None,
 }
 
 pub struct Lexer<'a> {
@@ -31,7 +44,7 @@ impl<'a> Lexer<'a> {
         let mut s = String::new();
 
         while let Some(&c) = self.chars.peek() {
-            if c.is_alphanumeric() || c == '_' {
+            if c.is_alphabetic() {
                 s.push(c);
                 self.chars.next();
             } else {
@@ -43,9 +56,10 @@ impl<'a> Lexer<'a> {
 
     fn read_number(&mut self) -> String {
         let mut s = String::new();
+        let valid_digits = ".,";
 
         while let Some(&c) = self.chars.peek() {
-            if !c.is_ascii() && !c.is_whitespace() {
+            if valid_digits.contains(c) {
                 s.push(c);
                 self.chars.next();
             } else {
@@ -68,17 +82,33 @@ impl<'a> Lexer<'a> {
             return Some(Tokens::Ident(ident));
         }
 
-        if c.is_ascii_digit() {
+        if c == '.' || c == ',' {
             let num = self.read_number();
-            return Some(Tokens::NumberDigits(num));
-        }
-
-        if !c.is_ascii() {
-            let num = self.read_number();
-            return Some(Tokens::NumberDigits(num));
+            return Some(Tokens::Number(num));
         }
 
         self.chars.next();
-        Some(Tokens::Error)
+
+        match c {
+            '[' => Some(Tokens::LeftBracket),
+            ']' => Some(Tokens::RightBracket),
+            '"' => Some(Tokens::Quote),
+            '|' => Some(Tokens::Add),
+            '/' => Some(Tokens::Subtract),
+            '~' => Some(Tokens::Equal),
+            '-' => Some(Tokens::NotEqual),
+            _ => Some(Tokens::Error),
+        }
+    }
+
+    pub fn tokenize(mut self) -> Vec<Tokens> {
+        let mut tokens = Vec::new();
+
+        while let Some(token) = self.next_token() {
+            tokens.push(token);
+        }
+
+        tokens.push(Tokens::EOF);
+        tokens
     }
 }
