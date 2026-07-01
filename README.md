@@ -1,4 +1,4 @@
-# Useless-Interpreter
+# Useless Interpreter
 My own programming language. It runs line by line. Based off ASM.
 
 ## Syntax
@@ -10,6 +10,7 @@ My own programming language. It runs line by line. Based off ASM.
 
 Normal Operations|Useless Version
 |--|--|
-+|donate
--|steal
-=|tasty
++| |
+-|/
+=|~
+≠|-
