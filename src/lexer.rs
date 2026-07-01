@@ -2,24 +2,8 @@
 pub enum Tokens {
     Ident(String),
     NumberDigits(String),
-    Commands,
     Error,
     None,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Operators {
-    Plus,
-    Minus,
-    Equal,
-    Not,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Commands {
-    Opr(Operators),
-    Print,
-    Error,
 }
 
 pub struct Lexer<'a> {
@@ -47,7 +31,7 @@ impl<'a> Lexer<'a> {
         let mut s = String::new();
 
         while let Some(&c) = self.chars.peek() {
-            if c.is_alphanumeric() {
+            if c.is_alphanumeric() || c == '_' {
                 s.push(c);
                 self.chars.next();
             } else {
@@ -71,28 +55,30 @@ impl<'a> Lexer<'a> {
         s
     }
 
-    pub fn next_token(&mut self) -> Tokens {
+    pub fn next_token(&mut self) -> Option<Tokens> {
         self.skip_whitespace();
 
         let c = match self.chars.peek() {
             Some(c) => *c,
-            None => return Tokens::None,
+            None => return None,
         };
 
         if c.is_alphabetic() {
             let ident = self.read_ident();
-            return Tokens::Commands;
+            return Some(Tokens::Ident(ident));
         }
 
         if c.is_ascii_digit() {
-            return Tokens::Error;
+            let num = self.read_number();
+            return Some(Tokens::NumberDigits(num));
         }
 
         if !c.is_ascii() {
             let num = self.read_number();
-            return Tokens::NumberDigits(num);
-        } else {
-            return Tokens::Error;
+            return Some(Tokens::NumberDigits(num));
         }
+
+        self.chars.next();
+        Some(Tokens::Error)
     }
 }
