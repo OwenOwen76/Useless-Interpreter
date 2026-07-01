@@ -17,7 +17,7 @@ Normal Operations|Useless Version
 
 - The interpreter read everything bottom up, right to left, so the last line's last character will be read first,and the top left character will be read last.
 - Every token must be separated by exactly two ASCII spaces (0x20). Tabs and single spaces are invalid.
-- Return a result with `"`
+- Return a the value of a variable with `"`, keep in mind this does not terminates the program.
 
 ### Example Code
 The code below calculate `1 + 4 * 2 - 3`
