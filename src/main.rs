@@ -1,4 +1,6 @@
+mod compiler;
 mod lexer;
+mod vm;
 
 use crate::lexer::*;
 use std::{env, error::Error, fs, path::Path};
@@ -23,6 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let lexer = Lexer::new(&contents);
     let tokens = lexer.tokenize();
 
+    println!("{:#?}", contents);
     println!("{:#?}", tokens);
 
     Ok(())
