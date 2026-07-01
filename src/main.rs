@@ -1,25 +1,30 @@
-use std::env;
-use std::fs;
-use std::path::Path;
+mod lexer;
+mod parser;
 
-fn main() {
+use std::{env, error::Error, fs, path::Path};
+
+fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
         eprintln!("Usage: useless <file.usl>");
-        return;
+        return Ok(());
     }
 
     let filename = &args[1];
 
     if !is_valid_file(filename) {
         eprintln!("Error: only .usl files are allowed");
-        return;
+        return Ok(());
     }
 
-    let contents = fs::read_to_string(filename).expect("Could not read file");
+    let contents = fs::read_to_string(filename)?;
+    let mut chars = contents.chars();
 
+    //change this to actual interpreter later
     println!("Running:\n{}", contents);
+
+    Ok(())
 }
 
 fn is_valid_file(filename: &str) -> bool {
