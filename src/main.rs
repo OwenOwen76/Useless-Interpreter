@@ -1,6 +1,8 @@
 mod lexer;
 mod parser;
 
+use crate::lexer::*;
+use crate::parser::*;
 use std::{env, error::Error, fs, path::Path};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -20,8 +22,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let contents = fs::read_to_string(filename)?;
 
-    //change this to actual interpreter later
-    println!("Running:\n{}", contents);
+    let lexer = Lexer::new(&contents);
+    let tokens = lexer.tokenize();
+
+    println!("{:#?}", tokens);
 
     Ok(())
 }
