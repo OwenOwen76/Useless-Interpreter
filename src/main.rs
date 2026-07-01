@@ -1,8 +1,6 @@
 mod lexer;
-mod parser;
 
 use crate::lexer::*;
-use crate::parser::*;
 use std::{env, error::Error, fs, path::Path};
 
 fn main() -> Result<(), Box<dyn Error>> {
