@@ -23,6 +23,6 @@ Normal Operations|Useless Version
 The code below calculate `1 + 4 * 2 - 3`
 ```
 <?EMPTYTRASHCAN>
-[,aaaaaaaaaa][..,bbbbbbbbbb][.,cccccccccc][,,dddddddddd][bbbbbbbbbb  bbbbbbbbbb  |eeeeeeeeee][eeeeeeeeee  aaaaaaaaaa  |ffffffffff][ffffffffff  dddddddddd  /gggggggggg]"gggggggggg
+"gggggggggg[ffffffffff  dddddddddd  /gggggggggg][eeeeeeeeee  aaaaaaaaaa  |ffffffffff][bbbbbbbbbb  bbbbbbbbbb  |eeeeeeeeee][,,dddddddddd][.,cccccccccc][..,bbbbbbbbbb][,aaaaaaaaaa]
 <!194thTRASHCAN>
 ```
