@@ -2,13 +2,10 @@
 pub enum Instr {
     LoadConst { dst: usize, value: i64 },
 
+    Mov { dst: usize, src: usize },
+
     Add { dst: usize, a: usize, b: usize },
     Sub { dst: usize, a: usize, b: usize },
-    Eq { dst: usize, a: usize, b: usize },
-    Ne { dst: usize, a: usize, b: usize },
-
-    JumpIfTrue { cond: usize, target: usize },
-    Jump { target: usize },
 
     Print { src: usize },
 }
@@ -35,40 +32,16 @@ impl VM {
                     self.regs[*dst] = *value;
                 }
 
+                Instr::Mov { dst, src } => {
+                    self.regs[*dst] = self.regs[*src];
+                }
+
                 Instr::Add { dst, a, b } => {
                     self.regs[*dst] = self.regs[*a] + self.regs[*b];
                 }
 
                 Instr::Sub { dst, a, b } => {
                     self.regs[*dst] = self.regs[*a] - self.regs[*b];
-                }
-
-                Instr::Eq { dst, a, b } => {
-                    self.regs[*dst] = (self.regs[*a] == self.regs[*b]) as i64;
-                }
-
-                Instr::Ne { dst, a, b } => {
-                    self.regs[*dst] = (self.regs[*a] != self.regs[*b]) as i64;
-                }
-
-                Instr::JumpIfTrue { cond, target } => {
-                    if *target >= program.len() {
-                        panic!("Invalid jump target: {target}");
-                    }
-
-                    if self.regs[*cond] != 0 {
-                        self.pc = *target;
-                        continue;
-                    }
-                }
-
-                Instr::Jump { target } => {
-                    if *target >= program.len() {
-                        panic!("Invalid jump target: {target}");
-                    }
-
-                    self.pc = *target;
-                    continue;
                 }
 
                 Instr::Print { src } => {

@@ -5,6 +5,7 @@ use std::collections::HashMap;
 pub struct Compiler {
     pub var_map: HashMap<String, usize>,
     pub next_reg: usize,
+    pub next_temp: usize,
     pub output: Vec<Instr>,
 }
 
@@ -13,48 +14,108 @@ impl Compiler {
         Self {
             var_map: HashMap::new(),
             next_reg: 0,
+            next_temp: 0,
             output: Vec::new(),
         }
     }
 
     fn get_reg(&mut self, name: String) -> usize {
-        *self.var_map.entry(name).or_insert_with(|| {
-            let r = self.next_reg;
-            self.next_reg += 1;
-            r
-        })
+        if let Some(&r) = self.var_map.get(&name) {
+            return r;
+        }
+
+        let r = self.next_reg;
+        self.var_map.insert(name, r);
+        self.next_reg += 1;
+        r
     }
 
-    fn emit(&mut self, instr: Instr) -> usize {
-        self.output.push(instr);
-        self.output.len() - 1
-    }
+    fn split_blocks(tokens: &[Tokens]) -> Vec<Vec<Tokens>> {
+        let mut blocks = Vec::new();
+        let mut current = Vec::new();
+        let mut inside = false;
 
-    fn binary_to_i64(bits: &str) -> i64 {
-        let mut value = 0;
-        for (i, c) in bits.chars().enumerate() {
-            if c == ',' {
-                value |= 1 << i;
+        for t in tokens {
+            match t {
+                Tokens::LeftBracket => {
+                    inside = true;
+                    current = Vec::new();
+                }
+
+                Tokens::RightBracket => {
+                    inside = false;
+                    blocks.push(current.clone());
+                }
+
+                Tokens::StartFile | Tokens::EndFile(_) | Tokens::EOF => {}
+
+                other => {
+                    if inside {
+                        current.push(other.clone());
+                    }
+                }
             }
         }
-        value
+
+        blocks
     }
 
-    fn patch_jump(&mut self, idx: usize, target: usize) {
-        match &mut self.output[idx] {
-            Instr::JumpIfTrue { target: t, .. } => *t = target,
-            _ => panic!("Invalid JumpIfTrue patch"),
-        }
-    }
+    fn compile_block(&mut self, tokens: &[Tokens]) -> Option<usize> {
+        let mut stack: Vec<usize> = Vec::new();
+        let mut last_result: Option<usize> = None;
 
-    fn patch_jump_unconditional(&mut self, idx: usize, target: usize) {
-        match &mut self.output[idx] {
-            Instr::Jump { target: t } => *t = target,
-            _ => panic!("Invalid Jump patch"),
+        for token in tokens {
+            match token {
+                Tokens::Ident(name) => {
+                    let reg = self.get_reg(name.clone());
+                    stack.push(reg);
+                }
+
+                Tokens::Add => {
+                    let b = stack.pop().unwrap();
+                    let a = stack.pop().unwrap();
+
+                    let dst = self.next_temp;
+                    self.next_temp += 1;
+
+                    self.output.push(Instr::Add { dst, a, b });
+
+                    stack.push(dst);
+                    last_result = Some(dst);
+                }
+
+                Tokens::Subtract => {
+                    let b = stack.pop().unwrap();
+                    let a = stack.pop().unwrap();
+
+                    let dst = self.next_temp;
+                    self.next_temp += 1;
+
+                    self.output.push(Instr::Sub { dst, a, b });
+
+                    stack.push(dst);
+                    last_result = Some(dst);
+                }
+
+                _ => {}
+            }
         }
+
+        last_result
     }
 
     pub fn compile(&mut self, tokens: &[Tokens]) {
+        let mut blocks = Self::split_blocks(tokens);
+
+        blocks.reverse();
+
+        let mut block_results: Vec<Option<usize>> = Vec::new();
+
+        for block in blocks {
+            let result = self.compile_block(&block);
+            block_results.push(result);
+        }
+
         let mut i = 0;
 
         while i < tokens.len() {
@@ -62,72 +123,8 @@ impl Compiler {
                 Tokens::Quote => {
                     if let Some(Tokens::Ident(name)) = tokens.get(i + 1) {
                         let reg = self.get_reg(name.clone());
-                        self.emit(Instr::Print { src: reg });
+                        self.output.push(Instr::Print { src: reg });
                         i += 2;
-                        continue;
-                    }
-                }
-
-                Tokens::LeftBracket => {
-                    if let Some(Tokens::Number(bits)) = tokens.get(i + 1) {
-                        if let Some(Tokens::Ident(name)) = tokens.get(i + 2) {
-                            let dst = self.get_reg(name.clone());
-                            let value = Self::binary_to_i64(bits);
-
-                            self.emit(Instr::LoadConst { dst, value });
-                            i += 3;
-                            continue;
-                        }
-                    }
-                }
-
-                Tokens::IfStart => {
-                    if let Some(Tokens::Ident(cond_name)) = tokens.get(i + 1) {
-                        let cond = self.get_reg(cond_name.clone());
-
-                        let jmp_if_false = self.emit(Instr::JumpIfTrue { cond, target: 0 });
-
-                        i += 2;
-
-                        let mut j = i;
-                        let mut found_else = false;
-
-                        while j < tokens.len() {
-                            if let Tokens::IfEnd = tokens[j] {
-                                found_else = true;
-                                break;
-                            }
-                            j += 1;
-                        }
-
-                        let else_start = self.output.len();
-
-                        while i < j {
-                            self.compile_token(&tokens[i]);
-                            i += 1;
-                        }
-
-                        let jmp_end = self.emit(Instr::Jump { target: 0 });
-
-                        let if_end = self.output.len();
-
-                        self.patch_jump(jmp_if_false, else_start);
-
-                        if found_else {
-                            i += 1;
-                            while i < tokens.len() {
-                                if let Tokens::EOF = tokens[i] {
-                                    break;
-                                }
-                                self.compile_token(&tokens[i]);
-                                i += 1;
-                            }
-                        }
-
-                        let end = self.output.len();
-
-                        self.patch_jump_unconditional(jmp_end, end);
-
                         continue;
                     }
                 }
@@ -136,16 +133,6 @@ impl Compiler {
             }
 
             i += 1;
-        }
-    }
-
-    fn compile_token(&mut self, token: &Tokens) {
-        match token {
-            Tokens::Quote => {
-                // reorganizing
-            }
-
-            _ => {}
         }
     }
 }
