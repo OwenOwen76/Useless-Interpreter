@@ -7,6 +7,9 @@ pub enum Instr {
     Eq { dst: usize, a: usize, b: usize },
     Ne { dst: usize, a: usize, b: usize },
 
+    JumpIfTrue { cond: usize, target: usize },
+    Jump { target: usize },
+
     Print { src: usize },
 }
 
@@ -46,6 +49,26 @@ impl VM {
 
                 Instr::Ne { dst, a, b } => {
                     self.regs[*dst] = (self.regs[*a] != self.regs[*b]) as i64;
+                }
+
+                Instr::JumpIfTrue { cond, target } => {
+                    if *target >= program.len() {
+                        panic!("Invalid jump target: {target}");
+                    }
+
+                    if self.regs[*cond] != 0 {
+                        self.pc = *target;
+                        continue;
+                    }
+                }
+
+                Instr::Jump { target } => {
+                    if *target >= program.len() {
+                        panic!("Invalid jump target: {target}");
+                    }
+
+                    self.pc = *target;
+                    continue;
                 }
 
                 Instr::Print { src } => {

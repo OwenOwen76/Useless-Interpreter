@@ -1,3 +1,7 @@
+"<?EMPTYTRASHCAN>\n\"gggggggggg[ffffffffff  dddddddddd  /gggggggggg][eeeeeeeeee  aaaaaaaaaa  |ffffffffff][bbbbbbbbbb  bbbbbbbbbb  |eeeeeeeeee][,,dddddddddd][.,cccccccccc][..,bbbbbbbbbb][,aaaaaaaaaa]\n<!194thTRASHCAN>\n"
+
+ ---------------
+
 [
     StartFile,
     Quote,
@@ -77,3 +81,31 @@
     ),
     EOF,
 ]
+
+ ---------------
+
+[
+    Print {
+        src: 0,
+    },
+    LoadConst {
+        dst: 1,
+        value: 3,
+    },
+    LoadConst {
+        dst: 2,
+        value: 2,
+    },
+    LoadConst {
+        dst: 3,
+        value: 4,
+    },
+    LoadConst {
+        dst: 4,
+        value: 1,
+    },
+]
+
+ ---------------
+
+0

@@ -5,6 +5,8 @@ pub enum Tokens {
 
     LeftBracket,
     RightBracket,
+    IfStart,
+    IfEnd,
     Quote,
 
     Add,
@@ -123,6 +125,8 @@ impl<'a> Lexer<'a> {
         match c {
             '[' => Some(Tokens::LeftBracket),
             ']' => Some(Tokens::RightBracket),
+            ':' => Some(Tokens::IfStart),
+            ';' => Some(Tokens::IfEnd),
             '"' => Some(Tokens::Quote),
             '|' => Some(Tokens::Add),
             '/' => Some(Tokens::Subtract),
