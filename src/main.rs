@@ -2,7 +2,9 @@ mod compiler;
 mod lexer;
 mod vm;
 
+use crate::compiler::*;
 use crate::lexer::*;
+use crate::vm::*;
 use std::{env, error::Error, fs, path::Path};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -25,8 +27,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let lexer = Lexer::new(&contents);
     let tokens = lexer.tokenize();
 
+    let mut compiler = Compiler::new();
+    compiler.compile(&tokens);
+
     println!("{:#?}", contents);
+    println!("\n ---------------\n");
     println!("{:#?}", tokens);
+    println!("\n ---------------\n");
+    println!("{:#?}", compiler.output);
+    println!("\n ---------------\n");
+
+    let mut vm = VM::new();
+    vm.run(&compiler.output);
 
     Ok(())
 }
