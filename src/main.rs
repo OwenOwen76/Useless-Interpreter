@@ -30,12 +30,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut compiler = Compiler::new();
     compiler.compile(&tokens);
 
+    //--- Debug only ---
     println!("{:#?}", contents);
     println!("\n ---------------\n");
     println!("{:#?}", tokens);
     println!("\n ---------------\n");
     println!("{:#?}", compiler.output);
     println!("\n ---------------\n");
+    //------------------
 
     let mut vm = VM::new();
     vm.run(&compiler.output);
