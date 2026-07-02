@@ -5,7 +5,6 @@ use std::collections::HashMap;
 pub struct Compiler {
     pub var_map: HashMap<String, usize>,
     pub next_reg: usize,
-    pub next_temp: usize,
     pub output: Vec<Instr>,
 }
 
@@ -14,7 +13,6 @@ impl Compiler {
         Self {
             var_map: HashMap::new(),
             next_reg: 0,
-            next_temp: 0,
             output: Vec::new(),
         }
     }
@@ -30,16 +28,28 @@ impl Compiler {
         r
     }
 
+    fn binary_to_i64(bits: &str) -> i64 {
+        let mut value = 0;
+
+        for (i, c) in bits.chars().enumerate() {
+            if c == ',' {
+                value |= 1 << i;
+            }
+        }
+
+        value
+    }
+
     fn split_blocks(tokens: &[Tokens]) -> Vec<Vec<Tokens>> {
         let mut blocks = Vec::new();
         let mut current = Vec::new();
         let mut inside = false;
 
-        for t in tokens {
-            match t {
+        for token in tokens {
+            match token {
                 Tokens::LeftBracket => {
                     inside = true;
-                    current = Vec::new();
+                    current.clear();
                 }
 
                 Tokens::RightBracket => {
@@ -60,48 +70,45 @@ impl Compiler {
         blocks
     }
 
-    fn compile_block(&mut self, tokens: &[Tokens]) -> Option<usize> {
-        let mut stack: Vec<usize> = Vec::new();
-        let mut last_result: Option<usize> = None;
+    fn compile_block(&mut self, block: &[Tokens]) {
+        match block {
+            [Tokens::Number(bits), Tokens::Ident(name)] => {
+                let dst = self.get_reg(name.clone());
+                let value = Self::binary_to_i64(bits);
 
-        for token in tokens {
-            match token {
-                Tokens::Ident(name) => {
-                    let reg = self.get_reg(name.clone());
-                    stack.push(reg);
-                }
+                self.output.push(Instr::LoadConst { dst, value });
+            }
 
-                Tokens::Add => {
-                    let b = stack.pop().unwrap();
-                    let a = stack.pop().unwrap();
+            [
+                Tokens::Ident(lhs),
+                Tokens::Ident(rhs),
+                Tokens::Add,
+                Tokens::Ident(dst_name),
+            ] => {
+                let dst = self.get_reg(dst_name.clone());
+                let a = self.get_reg(lhs.clone());
+                let b = self.get_reg(rhs.clone());
 
-                    let dst = self.next_temp;
-                    self.next_temp += 1;
+                self.output.push(Instr::Add { dst, a, b });
+            }
 
-                    self.output.push(Instr::Add { dst, a, b });
+            [
+                Tokens::Ident(lhs),
+                Tokens::Ident(rhs),
+                Tokens::Subtract,
+                Tokens::Ident(dst_name),
+            ] => {
+                let dst = self.get_reg(dst_name.clone());
+                let a = self.get_reg(lhs.clone());
+                let b = self.get_reg(rhs.clone());
 
-                    stack.push(dst);
-                    last_result = Some(dst);
-                }
+                self.output.push(Instr::Sub { dst, a, b });
+            }
 
-                Tokens::Subtract => {
-                    let b = stack.pop().unwrap();
-                    let a = stack.pop().unwrap();
-
-                    let dst = self.next_temp;
-                    self.next_temp += 1;
-
-                    self.output.push(Instr::Sub { dst, a, b });
-
-                    stack.push(dst);
-                    last_result = Some(dst);
-                }
-
-                _ => {}
+            _ => {
+                panic!("Invalid declaration block: {:?}", block);
             }
         }
-
-        last_result
     }
 
     pub fn compile(&mut self, tokens: &[Tokens]) {
@@ -109,11 +116,8 @@ impl Compiler {
 
         blocks.reverse();
 
-        let mut block_results: Vec<Option<usize>> = Vec::new();
-
         for block in blocks {
-            let result = self.compile_block(&block);
-            block_results.push(result);
+            self.compile_block(&block);
         }
 
         let mut i = 0;
@@ -123,7 +127,9 @@ impl Compiler {
                 Tokens::Quote => {
                     if let Some(Tokens::Ident(name)) = tokens.get(i + 1) {
                         let reg = self.get_reg(name.clone());
+
                         self.output.push(Instr::Print { src: reg });
+
                         i += 2;
                         continue;
                     }
