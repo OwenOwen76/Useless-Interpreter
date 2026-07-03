@@ -5,6 +5,8 @@ pub enum Tokens {
 
     LeftBracket,
     RightBracket,
+    IfStart,
+    IfEnd,
     Quote,
 
     Add,
@@ -17,6 +19,8 @@ pub enum Tokens {
 
     EOF,
     Error,
+    WhiteSpaceError,
+    Newline,
 }
 
 pub struct Lexer<'a> {
@@ -27,16 +31,6 @@ impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         Self {
             chars: input.chars().peekable(),
-        }
-    }
-
-    pub fn skip_whitespace(&mut self) {
-        while let Some(&c) = self.chars.peek() {
-            if c.is_whitespace() {
-                self.chars.next();
-            } else {
-                break;
-            }
         }
     }
 
@@ -92,12 +86,22 @@ impl<'a> Lexer<'a> {
 
             return Some(Tokens::EndFile(num.to_string()));
         }
+        Some(Tokens::Error)
+    }
 
+    fn read_newline(&mut self) -> Option<Tokens> {
+        let c = self.chars.peek();
+        if c == Some(&'n') {
+            return Some(Tokens::Newline);
+        }
         Some(Tokens::Error)
     }
 
     pub fn next_token(&mut self) -> Option<Tokens> {
-        self.skip_whitespace();
+        let c = self.chars.peek();
+        if c == Some(&' ') {
+            return Some(Tokens::WhiteSpaceError);
+        }
 
         let c = match self.chars.peek() {
             Some(c) => *c,
@@ -123,11 +127,14 @@ impl<'a> Lexer<'a> {
         match c {
             '[' => Some(Tokens::LeftBracket),
             ']' => Some(Tokens::RightBracket),
+            ':' => Some(Tokens::IfStart),
+            ';' => Some(Tokens::IfEnd),
             '"' => Some(Tokens::Quote),
             '|' => Some(Tokens::Add),
             '/' => Some(Tokens::Subtract),
             '~' => Some(Tokens::Equal),
             '-' => Some(Tokens::NotEqual),
+            '\\' => self.read_newline(),
             _ => Some(Tokens::Error),
         }
     }

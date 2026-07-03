@@ -1,19 +1,17 @@
-"<?EMPTYTRASHCAN>\n\"gggggggggg[ffffffffff  dddddddddd  /gggggggggg][eeeeeeeeee  aaaaaaaaaa  |ffffffffff][bbbbbbbbbb  bbbbbbbbbb  |eeeeeeeeee][,,dddddddddd][.,cccccccccc][..,bbbbbbbbbb][,aaaaaaaaaa]\n<!194thTRASHCAN>\n"
+"<?EMPTYTRASHCAN>\n\"gggggggggg[ffffffffffdddddddddd/gggggggggg][eeeeeeeeeeaaaaaaaaaa|ffffffffff][bbbbbbbbbbbbbbbbbbbb|eeeeeeeeee][,,dddddddddd][.,cccccccccc][..,bbbbbbbbbb][,aaaaaaaaaa]\n<!194thTRASHCAN>\n"
 
- ---------------
+--------------------
 
 [
     StartFile,
+    Error,
     Quote,
     Ident(
         "gggggggggg",
     ),
     LeftBracket,
     Ident(
-        "ffffffffff",
-    ),
-    Ident(
-        "dddddddddd",
+        "ffffffffffdddddddddd",
     ),
     Subtract,
     Ident(
@@ -22,10 +20,7 @@
     RightBracket,
     LeftBracket,
     Ident(
-        "eeeeeeeeee",
-    ),
-    Ident(
-        "aaaaaaaaaa",
+        "eeeeeeeeeeaaaaaaaaaa",
     ),
     Add,
     Ident(
@@ -34,10 +29,7 @@
     RightBracket,
     LeftBracket,
     Ident(
-        "bbbbbbbbbb",
-    ),
-    Ident(
-        "bbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbb",
     ),
     Add,
     Ident(
@@ -76,36 +68,70 @@
         "aaaaaaaaaa",
     ),
     RightBracket,
+    Error,
     EndFile(
         "194",
     ),
+    Error,
     EOF,
 ]
 
- ---------------
+--------------------
 
 [
     Print {
-        src: 0,
+        target: "null",
     },
-    LoadConst {
-        dst: 1,
-        value: 3,
+    Print {
+        target: "null",
     },
-    LoadConst {
-        dst: 2,
-        value: 2,
+    Print {
+        target: "null",
     },
-    LoadConst {
-        dst: 3,
-        value: 4,
+    Declare {
+        name: "aaaaaaaaaa",
+        value: ",",
     },
-    LoadConst {
-        dst: 4,
-        value: 1,
+    Declare {
+        name: "bbbbbbbbbb",
+        value: "..,",
+    },
+    Declare {
+        name: "cccccccccc",
+        value: ".,",
+    },
+    Declare {
+        name: "dddddddddd",
+        value: ",,",
+    },
+    BinaryOp {
+        op: Add,
+        left: "eeeeeeeeee",
+        right: "bbbbbbbbbbbbbbbbbbbb",
+        out: "tmp",
+    },
+    BinaryOp {
+        op: Add,
+        left: "ffffffffff",
+        right: "eeeeeeeeeeaaaaaaaaaa",
+        out: "tmp",
+    },
+    BinaryOp {
+        op: Sub,
+        left: "gggggggggg",
+        right: "ffffffffffdddddddddd",
+        out: "tmp",
+    },
+    Print {
+        target: "gggggggggg",
+    },
+    Print {
+        target: "null",
+    },
+    Print {
+        target: "null",
+    },
+    Print {
+        target: "null",
     },
 ]
-
- ---------------
-
-0

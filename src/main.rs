@@ -1,10 +1,9 @@
 mod compiler;
 mod lexer;
-mod vm;
+mod parser;
 
-use crate::compiler::*;
 use crate::lexer::*;
-use crate::vm::*;
+use crate::parser::*;
 use std::{env, error::Error, fs, path::Path};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -24,21 +23,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let contents = fs::read_to_string(filename)?;
 
+    println!("{:#?}", contents);
+    println!("\n--------------------\n");
+
     let lexer = Lexer::new(&contents);
     let tokens = lexer.tokenize();
 
-    let mut compiler = Compiler::new();
-    compiler.compile(&tokens);
-
-    println!("{:#?}", contents);
-    println!("\n ---------------\n");
     println!("{:#?}", tokens);
-    println!("\n ---------------\n");
-    println!("{:#?}", compiler.output);
-    println!("\n ---------------\n");
+    println!("\n--------------------\n");
 
-    let mut vm = VM::new();
-    vm.run(&compiler.output);
+    let mut parser = Parser::new(tokens);
+    parser.parse();
+
+    println!("{:#?}", parser.output);
 
     Ok(())
 }
