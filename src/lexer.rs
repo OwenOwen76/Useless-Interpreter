@@ -21,6 +21,7 @@ pub enum Tokens {
     Error,
     WhiteSpaceError,
     Newline,
+    Test, //debugging token for testing the code
 }
 
 pub struct Lexer<'a> {
@@ -89,14 +90,6 @@ impl<'a> Lexer<'a> {
         Some(Tokens::Error)
     }
 
-    fn read_newline(&mut self) -> Option<Tokens> {
-        let c = self.chars.peek();
-        if c == Some(&'n') {
-            return Some(Tokens::Newline);
-        }
-        Some(Tokens::Error)
-    }
-
     pub fn next_token(&mut self) -> Option<Tokens> {
         let c = self.chars.peek();
         if c == Some(&' ') {
@@ -134,7 +127,7 @@ impl<'a> Lexer<'a> {
             '/' => Some(Tokens::Subtract),
             '~' => Some(Tokens::Equal),
             '-' => Some(Tokens::NotEqual),
-            '\\' => self.read_newline(),
+            '\n' => Some(Tokens::Newline),
             _ => Some(Tokens::Error),
         }
     }

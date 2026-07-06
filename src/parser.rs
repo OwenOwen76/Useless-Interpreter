@@ -16,6 +16,7 @@ pub enum Instr {
     },
 
     Drop,
+    None,
 
     BinaryOp {
         op: Op,
@@ -27,6 +28,12 @@ pub enum Instr {
     Print {
         target: String,
     },
+}
+
+#[derive(Debug, Clone)]
+pub enum IdentType {
+    VarName,
+    VarValue,
 }
 
 pub struct Parser {
@@ -71,22 +78,22 @@ impl Parser {
 
             buffer.push(tok);
 
-            if self.is_line_end(&buffer) {
-                let instr = self.parse_line(&buffer);
+            if self.is_block_end(&buffer) {
+                let instr = self.parse_block(&buffer);
                 self.output.push(instr);
                 buffer.clear();
             }
         }
 
         if !buffer.is_empty() {
-            let instr = self.parse_line(&buffer);
+            let instr = self.parse_block(&buffer);
             self.output.push(instr);
         }
 
         self.output.reverse();
     }
 
-    fn is_line_end(&self, buffer: &[Tokens]) -> bool {
+    fn is_block_end(&self, buffer: &[Tokens]) -> bool {
         let mut depth = 0;
 
         for t in buffer {
@@ -100,13 +107,14 @@ impl Parser {
         depth == 0 && !buffer.is_empty()
     }
 
-    fn parse_line(&self, tokens: &[Tokens]) -> Instr {
+    fn parse_block(&self, tokens: &[Tokens]) -> Instr {
         let mut t = tokens.to_vec();
         t.reverse();
 
         let mut left: Option<String> = None;
         let mut right: Option<String> = None;
         let mut op: Option<Op> = None;
+        let mut is_newline: bool = false;
 
         let mut i = 0;
         while i < t.len() {
@@ -131,6 +139,7 @@ impl Parser {
                 Tokens::Subtract => op = Some(Op::Sub),
                 Tokens::Equal => op = Some(Op::Eq),
                 Tokens::NotEqual => op = Some(Op::Neq),
+                Tokens::Newline => is_newline = true,
 
                 Tokens::Quote => {
                     return Instr::Print {
@@ -144,21 +153,21 @@ impl Parser {
             i += 1;
         }
 
-        match (left, op, right) {
-            (Some(l), Some(o), Some(r)) => Instr::BinaryOp {
+        match (left, op, right, is_newline) {
+            (Some(l), Some(o), Some(r), false) => Instr::BinaryOp {
                 op: o,
                 left: l,
                 right: r,
                 out: "tmp".to_string(),
             },
 
-            (Some(l), None, Some(r)) => Instr::Declare { name: l, value: r },
+            (Some(l), None, Some(r), false) => Instr::Declare { name: l, value: r },
 
-            (Some(l), None, None) => Instr::Print { target: l },
+            (Some(l), None, None, false) => Instr::Print { target: l },
 
-            _ => Instr::Print {
-                target: "null".to_string(),
-            },
+            (None, None, None, true) => Instr::Drop,
+
+            _ => Instr::None,
         }
     }
 }
